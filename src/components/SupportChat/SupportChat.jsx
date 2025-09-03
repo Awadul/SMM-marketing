@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 // import { useAuth } from '../../contexts/AuthContext';
-import { supabase } from '../../lib/supabase';
+// import { supabase } from '../../lib/supabase';
 import './SupportChat.css';
 
 const SupportChat = () => {
