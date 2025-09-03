@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
-import Navbar from '../components/Navbar';
-import BlogSection from '../components/BlogSection';
-import { BlogProvider } from '../contexts/BlogContext';
+import Navbar from '../../components/Navbar/Navbar';
+import BlogSection from "../../components/BlogSection";
+import { BlogProvider } from "../../contexts/BlogContext";
 import './BlogPage.css';
 
 const BlogPage = () => {
