@@ -7,58 +7,16 @@ import './RequirementsFormPage.css';
 const RequirementsFormPage = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    business_type: '',
-    target_audience: '',
-    content_goals: [],
-    posting_frequency: '',
-    budget_range: '',
-    special_requirements: '',
-    preferred_hashtags: '',
-    competitor_accounts: ''
+    niche: '',
+    location: '',
+    comments: '',
+    dms: '',
+    max_following: '',
+    hashtags: '',
+    account_targets: ''
   });
   const { user } = useAuth();
   const navigate = useNavigate();
-
-  const businessTypes = [
-    'E-commerce Store',
-    'Local Business',
-    'Personal Brand',
-    'Service Provider',
-    'Restaurant/Food',
-    'Fashion/Beauty',
-    'Fitness/Health',
-    'Technology',
-    'Education',
-    'Other'
-  ];
-
-  const contentGoals = [
-    'Increase Followers',
-    'Boost Engagement',
-    'Drive Website Traffic',
-    'Generate Sales',
-    'Build Brand Awareness',
-    'Community Building',
-    'Lead Generation',
-    'Product Showcase'
-  ];
-
-  const postingFrequencies = [
-    'Daily',
-    '5-6 times per week',
-    '3-4 times per week',
-    '2-3 times per week',
-    'Weekly',
-    'As needed'
-  ];
-
-  const budgetRanges = [
-    'Under $500/month',
-    '$500 - $1,000/month',
-    '$1,000 - $2,500/month',
-    '$2,500 - $5,000/month',
-    '$5,000+/month'
-  ];
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -67,54 +25,53 @@ const RequirementsFormPage = () => {
     }));
   };
 
-  const handleCheckboxChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].includes(value)
-        ? prev[field].filter(item => item !== value)
-        : [...prev[field], value]
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      console.log('🔄 Starting form submission...');
+      console.log('📋 Form data:', formData);
+      console.log('👤 User:', user);
+      
+      if (!user || !user.id) {
+        throw new Error('User not authenticated');
+      }
+      
       // Save requirements to database
+      console.log('💾 Saving to database...');
       const { data, error } = await supabase
         .from('user_requirements')
         .insert({
           user_id: user.id,
-          business_type: formData.business_type,
-          target_audience: formData.target_audience,
-          content_goals: formData.content_goals,
-          posting_frequency: formData.posting_frequency,
-          budget_range: formData.budget_range,
-          special_requirements: formData.special_requirements,
-          preferred_hashtags: formData.preferred_hashtags,
-          competitor_accounts: formData.competitor_accounts,
-          status: 'submitted',
-          created_at: new Date().toISOString()
+          niche: formData.niche,
+          location: formData.location,
+          comments: formData.comments,
+          dms: formData.dms,
+          max_following: formData.max_following ? parseInt(formData.max_following, 10) : null,
+          hashtags: formData.hashtags,
+          account_targets: formData.account_targets
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Error saving requirements:', error);
-        throw error;
+        console.error('❌ Database error:', error);
+        throw new Error(error.message || 'Failed to save requirements');
       }
 
       console.log('✅ Requirements saved successfully:', data);
+      console.log('🚀 Navigating to dashboard...');
       
-      // Navigate to dashboard
+      // Navigate to dashboard after successful save
       navigate('/dashboard');
       
     } catch (error) {
-      console.error('Error submitting requirements:', error);
-      alert('Failed to save requirements. Please try again.');
+      console.error('💥 Error submitting requirements:', error);
+      alert(`Failed to save requirements: ${error.message || 'Please try again.'}`);
     } finally {
       setLoading(false);
+      console.log('🏁 Form submission completed');
     }
   };
 
@@ -122,121 +79,92 @@ const RequirementsFormPage = () => {
     <div className="requirements-form-page">
       <div className="form-container">
         <div className="form-header">
-          <h1>Tell Us About Your Business</h1>
-          <p>Help us understand your Instagram goals so we can create the perfect growth strategy for you.</p>
+          <h1>Instagram Growth Requirements</h1>
+          <p>Tell us about your target audience and engagement strategy so we can optimize your Instagram growth.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="requirements-form">
           <div className="form-section">
-            <h3>Business Information</h3>
+            <h3>Target Information</h3>
             
             <div className="form-group">
-              <label>What type of business do you have? *</label>
-              <select
-                value={formData.business_type}
-                onChange={(e) => handleInputChange('business_type', e.target.value)}
-                required
-              >
-                <option value="">Select your business type</option>
-                {businessTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Describe your target audience *</label>
+              <label>Niche (Target Audience) *</label>
               <textarea
-                value={formData.target_audience}
-                onChange={(e) => handleInputChange('target_audience', e.target.value)}
+                value={formData.niche}
+                onChange={(e) => handleInputChange('niche', e.target.value)}
                 placeholder="e.g., Young professionals aged 25-35 interested in fitness and healthy living"
                 required
                 rows="3"
               />
             </div>
-          </div>
 
-          <div className="form-section">
-            <h3>Content Goals</h3>
-            <p>What are your main objectives for Instagram? (Select all that apply)</p>
-            
-            <div className="checkbox-group">
-              {contentGoals.map(goal => (
-                <label key={goal} className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={formData.content_goals.includes(goal)}
-                    onChange={() => handleCheckboxChange('content_goals', goal)}
-                  />
-                  <span className="checkmark"></span>
-                  {goal}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="form-section">
-            <h3>Posting Preferences</h3>
-            
             <div className="form-group">
-              <label>How often would you like to post? *</label>
-              <select
-                value={formData.posting_frequency}
-                onChange={(e) => handleInputChange('posting_frequency', e.target.value)}
+              <label>Location *</label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                placeholder="e.g., New York, USA or Worldwide"
                 required
-              >
-                <option value="">Select posting frequency</option>
-                {postingFrequencies.map(freq => (
-                  <option key={freq} value={freq}>{freq}</option>
-                ))}
-              </select>
+              />
             </div>
 
             <div className="form-group">
-              <label>What's your monthly marketing budget? *</label>
-              <select
-                value={formData.budget_range}
-                onChange={(e) => handleInputChange('budget_range', e.target.value)}
-                required
-              >
-                <option value="">Select budget range</option>
-                {budgetRanges.map(budget => (
-                  <option key={budget} value={budget}>{budget}</option>
-                ))}
-              </select>
+              <label>Max Following (numbers only)</label>
+              <input
+                type="number"
+                value={formData.max_following}
+                onChange={(e) => handleInputChange('max_following', e.target.value)}
+                placeholder="e.g., 10000"
+                min="0"
+              />
             </div>
           </div>
 
           <div className="form-section">
-            <h3>Additional Information</h3>
+            <h3>Engagement Preferences</h3>
             
             <div className="form-group">
-              <label>Any special requirements or preferences?</label>
+              <label>Comments Strategy</label>
               <textarea
-                value={formData.special_requirements}
-                onChange={(e) => handleInputChange('special_requirements', e.target.value)}
-                placeholder="e.g., Must avoid certain topics, specific brand guidelines, etc."
+                value={formData.comments}
+                onChange={(e) => handleInputChange('comments', e.target.value)}
+                placeholder="Describe your commenting strategy and preferences"
                 rows="3"
               />
             </div>
 
             <div className="form-group">
-              <label>Preferred hashtags (comma-separated)</label>
-              <input
-                type="text"
-                value={formData.preferred_hashtags}
-                onChange={(e) => handleInputChange('preferred_hashtags', e.target.value)}
-                placeholder="e.g., #fitness, #health, #lifestyle"
+              <label>DMs Strategy</label>
+              <textarea
+                value={formData.dms}
+                onChange={(e) => handleInputChange('dms', e.target.value)}
+                placeholder="Describe your direct messaging strategy and preferences"
+                rows="3"
+              />
+            </div>
+          </div>
+
+          <div className="form-section">
+            <h3>Content & Targeting</h3>
+            
+            <div className="form-group">
+              <label>Hashtags</label>
+              <textarea
+                value={formData.hashtags}
+                onChange={(e) => handleInputChange('hashtags', e.target.value)}
+                placeholder="e.g., #fitness #health #lifestyle #wellness"
+                rows="3"
               />
             </div>
 
             <div className="form-group">
-              <label>Competitor accounts you'd like to follow (usernames, comma-separated)</label>
-              <input
-                type="text"
-                value={formData.competitor_accounts}
-                onChange={(e) => handleInputChange('competitor_accounts', e.target.value)}
-                placeholder="e.g., @competitor1, @competitor2"
+              <label>Account Targets</label>
+              <textarea
+                value={formData.account_targets}
+                onChange={(e) => handleInputChange('account_targets', e.target.value)}
+                placeholder="List target accounts or competitor accounts to follow"
+                rows="3"
               />
             </div>
           </div>
